@@ -1,4 +1,4 @@
-# AOC-2021 Day 4 Part 1
+# AOC-2021 Day 4 both parts
 
 class Board
   WIDTH = 5
@@ -35,13 +35,25 @@ class Board
   end
 end
 
+# Part 1
+def find_first_winner(boards, numbers_to_draw)
+  numbers_to_draw.detect do |number|
+    boards.each { |board| board.draw(number) }
+    winner = boards.find { |board| board.won? }
+    break [winner, number] if winner
+  end
+end
+
+# Part 2
+def find_last_winner(boards, numbers_to_draw)
+  numbers_to_draw.each_with_object([nil, nil]) do |number, memo|
+    boards.each { |board| board.draw(number) }
+    boards.find_all { |board| board.won? }.each { |winner| memo.replace [boards.delete(winner), number] }
+  end
+end
+
 numbers_to_draw = ARGF.readline.split(',').map(&:to_i)
 boards = ARGF.read.split.map(&:to_i).each_slice(Board::WIDTH * Board::HEIGHT).map { |numbers| Board.new(numbers) }
 
-winner, number = numbers_to_draw.detect do |number|
-  boards.each { |board| board.draw(number) }
-  winner = boards.find { |board| board.won? }
-  break [winner, number] if winner
-end
-
-puts winner.unmarked_numbers.sum * number
+winner, winner_number = ARGV.delete('-2') ? find_last_winner(boards, numbers_to_draw) : find_first_winner(boards, numbers_to_draw)
+puts winner.unmarked_numbers.sum * winner_number
